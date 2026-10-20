@@ -1,0 +1,43 @@
+using Auction.Application.DTOs.Auctions;
+using FluentValidation;
+
+namespace Auction.Application.Validators;
+
+// Shared rules used by both CreateAuctionRequestValidator and UpdateAuctionRequestValidator.
+// We use a base class to avoid duplicating the same rules in two places.
+public abstract class AuctionRequestValidatorBase<T> : AbstractValidator<T>
+    where T : CreateAuctionRequest
+{
+    protected void ApplyCommonRules()
+    {
+        RuleFor(x => x.Title)
+            .NotEmpty().WithMessage("Title is required.")
+            .MaximumLength(200).WithMessage("Title cannot exceed 200 characters.");
+
+        RuleFor(x => x.Description)
+            .NotEmpty().WithMessage("Description is required.");
+
+        RuleFor(x => x.CategoryId)
+            .GreaterThan(0).WithMessage("A valid category is required.");
+
+        RuleFor(x => x.StartingPrice)
+            .GreaterThan(0).WithMessage("Starting price must be greater than zero.");
+
+        RuleFor(x => x.MinIncrement)
+            .GreaterThan(0).WithMessage("Minimum increment must be greater than zero.");
+
+        RuleFor(x => x.StartTime)
+            .GreaterThan(DateTime.UtcNow).WithMessage("Start time must be in the future.");
+
+        RuleFor(x => x.EndTime)
+            .GreaterThan(x => x.StartTime).WithMessage("End time must be after start time.");
+    }
+}
+
+public class CreateAuctionRequestValidator : AuctionRequestValidatorBase<CreateAuctionRequest>
+{
+    public CreateAuctionRequestValidator()
+    {
+        ApplyCommonRules();
+    }
+}
